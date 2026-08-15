@@ -1,0 +1,170 @@
+@import "tailwindcss";
+
+@theme {
+  --color-tea-wood: #261B14;
+  --color-tea-wood-dark: #120D0A;
+  --color-tea-border: rgba(255, 225, 180, 0.18);
+  --color-tea-cream: #FFE1B4;
+  --color-tea-cream-muted: rgba(255, 225, 180, 0.6);
+  --color-tea-accent: #D85A38;
+  --color-tea-accent-light: #F47B58;
+  --color-tea-teal: #132B2A;
+  --color-tea-gold: #E5A93B;
+  --color-tea-charcoal: #120D0A;
+  --font-sans: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-tamil: 'Arima', 'Mukta Malar', system-ui, sans-serif;
+  
+  --animate-spin-slow: spin 8s linear infinite;
+  --animate-blink: blink 1s steps(2, start) infinite;
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+:root {
+  --background: #120D0A;
+  --foreground: #FFE1B4;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  overflow-y: auto;
+}
+
+/* Hero Background Layer */
+.hero-bg {
+  background-image: url("/bg/scene-wide.png");
+  background-size: cover;
+  background-position: center;
+}
+
+@media (orientation: portrait) {
+  .hero-bg {
+    background-image: url("/bg/scene-tall.png");
+  }
+}
+
+/* Film Grain Overlay */
+.grain-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  overflow: hidden;
+}
+
+.grain-overlay::before {
+  content: "";
+  position: absolute;
+  width: 200%;
+  height: 200%;
+  top: -50%;
+  left: -50%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 250 250' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.18;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  animation: noise-shift 0.8s steps(4) infinite;
+}
+
+/* Keyframes */
+@keyframes noise-shift {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-1%, -1%); }
+  20% { transform: translate(-2%, 1%); }
+  30% { transform: translate(1%, -2%); }
+  40% { transform: translate(-1%, 2%); }
+  50% { transform: translate(-2%, 1%); }
+  60% { transform: translate(2%, 0); }
+  70% { transform: translate(0, 2%); }
+  80% { transform: translate(-2%, 1%); }
+  90% { transform: translate(1%, -1%); }
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Custom styles for the physical Radio Player Console */
+
+/* Vintage Radio Cabinet Frame */
+.vintage-radio-cabinet {
+  background: linear-gradient(180deg, #4A3325 0%, #20130B 100%);
+  border: 5px solid #23160E;
+  border-bottom: 7px solid #170E09;
+  box-shadow: 
+    inset 0 3px 5px rgba(255, 255, 255, 0.08),
+    0 15px 45px rgba(0, 0, 0, 0.95);
+}
+
+/* Speaker weave/grill faceplate background */
+.vintage-faceplate {
+  background-color: #E2DAC8;
+  background-image: repeating-linear-gradient(90deg, #E2DAC8, #E2DAC8 4px, #D7CEBC 4px, #D7CEBC 8px);
+  border: 3px solid #362417;
+  box-shadow: 
+    inset 0 2px 6px rgba(0,0,0,0.35),
+    0 1px 0 rgba(255,255,255,0.1);
+}
+
+/* Classic brass metallic look */
+.brass-bezel {
+  border: 2px.5 solid #C5A059;
+  background: linear-gradient(135deg, #A47D3C 0%, #C5A059 45%, #EED596 55%, #A47D3C 100%);
+  box-shadow: 
+    0 2px 4px rgba(0,0,0,0.6),
+    inset 0 1px 1px rgba(255,255,255,0.4);
+}
+
+/* Ivory/Cream piano keys on tape player decks */
+.radio-push-key {
+  background: linear-gradient(180deg, #FCFAF6 0%, #DED8CA 100%);
+  border-top: 1.5px solid #FFF;
+  border-left: 1.5px solid #FFF;
+  border-right: 2px solid #AE9C85;
+  border-bottom: 4px solid #82725D;
+  color: #3C362A;
+  box-shadow: 
+    0 3px 5px rgba(0,0,0,0.4),
+    0 1px 1px rgba(0,0,0,0.2);
+  transition: all 0.1s cubic-bezier(0.25, 0.8, 0.25, 1);
+  text-shadow: 0 1px 0 rgba(255,255,255,0.5);
+}
+
+.radio-push-key:active, 
+.radio-push-key.is-active {
+  background: linear-gradient(180deg, #D4CEBF 0%, #EFEAE0 100%);
+  border-top: 4px solid #82725D;
+  border-left: 1.5px solid #AE9C85;
+  border-right: 1.5px solid #EFEAE0;
+  border-bottom: 1.5px solid #EFEAE0;
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.6);
+  transform: translateY(3.5px);
+}
+
+/* Dial needle pointer transition */
+.needle-transition {
+  transition: left 0.25s linear;
+}
+
+/* Rotary Dial Knob styling */
+.radio-rotary-dial {
+  background: radial-gradient(circle, #F9F7F5 0%, #C2BAAA 70%, #8E8573 100%);
+  box-shadow: 
+    0 4px 10px rgba(0,0,0,0.5),
+    inset 0 1px 2px #FFF,
+    inset 0 -3px 5px rgba(0,0,0,0.4);
+  border: 1px solid #9D9483;
+}
