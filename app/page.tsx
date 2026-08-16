@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useMemo } from "react"
+import React, { useState, useMemo, useEffect } from "react"
 import { track as trackAnalytics } from "@vercel/analytics"
 import { masterTracks, Track } from "../lib/tracks"
 import TeaKadaiRadio from "../components/TeaKadaiRadio"
@@ -14,11 +14,35 @@ export default function Home() {
   const [duration, setDuration] = useState<number>(0)
   const [seekTo, setSeekTo] = useState<number | null>(null)
   
+  // Dynamic online visitor count simulation
+  const [onlineCount, setOnlineCount] = useState<number>(187)
+  
   // Track-specific playback errors
   const [trackErrors, setTrackErrors] = useState<Record<string, boolean>>({})
 
   // Total tracks in the master catalog
   const totalTracks = masterTracks.length
+
+  // Fluctuates online count up and down by small amounts (-2 to +2) every 4-7 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setOnlineCount(prev => {
+        const delta = Math.floor(Math.random() * 5) - 2 // -2, -1, 0, 1, 2
+        const newCount = prev + delta
+        return Math.max(170, Math.min(210, newCount)) // Bounds between 170 and 210
+      })
+    }, 4000 + Math.random() * 3000)
+
+    return () => clearInterval(interval)
+  }, [])
+
+  // Helper to check if a track is playable (has a valid YouTube ID and hasn't errored)
+  const isTrackPlayable = (index: number, currentErrors: Record<string, boolean> = trackErrors): boolean => {
+    const track = masterTracks[index]
+    if (!track) return false
+    const videoId = require("../lib/youtubeSources").getVideoIdForTrack(track.id)
+    return !!videoId && !currentErrors[track.id]
+  }
 
   // Current track metadata
   const currentTrack = useMemo<Track>(() => {
@@ -48,10 +72,13 @@ export default function Home() {
   }
 
   const handleNext = () => {
-    let nextIndex = currentTrackIndex + 1
-    if (nextIndex >= totalTracks) {
-      nextIndex = 0
+    let nextIndex = (currentTrackIndex + 1) % totalTracks
+    let count = 0
+    while (!isTrackPlayable(nextIndex) && count < totalTracks) {
+      nextIndex = (nextIndex + 1) % totalTracks
+      count++
     }
+
     setCurrentTrackIndex(nextIndex)
     setCurrentTime(0)
     setDuration(0)
@@ -67,10 +94,13 @@ export default function Home() {
   }
 
   const handlePrevious = () => {
-    let prevIndex = currentTrackIndex - 1
-    if (prevIndex < 0) {
-      prevIndex = totalTracks - 1
+    let prevIndex = (currentTrackIndex - 1 + totalTracks) % totalTracks
+    let count = 0
+    while (!isTrackPlayable(prevIndex) && count < totalTracks) {
+      prevIndex = (prevIndex - 1 + totalTracks) % totalTracks
+      count++
     }
+
     setCurrentTrackIndex(prevIndex)
     setCurrentTime(0)
     setDuration(0)
@@ -93,7 +123,9 @@ export default function Home() {
 
   const handlePlayerError = (errorCode: number) => {
     console.error(`Playback error ${errorCode} for video ID: ${currentTrack.id}`)
-    setTrackErrors(prev => ({ ...prev, [currentTrack.id]: true }))
+    
+    const updatedErrors = { ...trackErrors, [currentTrack.id]: true }
+    setTrackErrors(updatedErrors)
     setIsPlaying(false)
 
     try {
@@ -106,9 +138,18 @@ export default function Home() {
       console.warn("Analytics error:", e)
     }
 
-    // Auto advance to next song after 3 seconds warning
+    // Circular queue check: Auto advance to next song after 3 seconds warning
     setTimeout(() => {
-      handleNext()
+      let nextIndex = (currentTrackIndex + 1) % totalTracks
+      let count = 0
+      while (!isTrackPlayable(nextIndex, updatedErrors) && count < totalTracks) {
+        nextIndex = (nextIndex + 1) % totalTracks
+        count++
+      }
+      setCurrentTrackIndex(nextIndex)
+      setCurrentTime(0)
+      setDuration(0)
+      setIsPlaying(true)
     }, 3000)
   }
 
@@ -124,7 +165,7 @@ export default function Home() {
       <div className="fixed top-5 left-1/2 -translate-x-1/2 z-40 flex items-center space-x-1.5 bg-black/40 backdrop-blur-md px-3.5 py-1 rounded-full border border-white/5 shadow-lg select-none">
         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
         <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-tea-cream/80 font-mono">
-          187 online
+          {onlineCount} online
         </span>
       </div>
 
